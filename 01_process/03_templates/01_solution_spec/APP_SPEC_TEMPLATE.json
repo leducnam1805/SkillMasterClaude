@@ -1,0 +1,146 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Universal App Spec Template",
+  "description": "Khung chuẩn hóa đặc tả giải pháp ứng dụng (Dùng chung cho mọi dự án phần mềm)",
+
+  "meta": {
+    "name": "<TEN_DU_AN: Tên ứng dụng đầy đủ, ví dụ: TaskFlow Pro>",
+    "slug": "<slug-du-an: Tên viết thường không dấu nối gạch ngang, ví dụ: taskflow-pro>",
+    "summary": "<MO_TA_NGAN: 1-2 câu tóm tắt mục tiêu và giá trị cốt lõi của ứng dụng>"
+  },
+
+  "tech_stack": {
+    "frontend": "<TEN_FRAMEWORK_FRONTEND: Next.js 15+ App Router / React 19 / Nuxt 3 / Vue 3>",
+    "backend": "<TEN_FRAMEWORK_BACKEND: FastAPI Python 3.11+ / NestJS TS / Express / Spring Boot>",
+    "database": "<TEN_CSDL: PostgreSQL 16+ / MySQL 8.0 / MongoDB / SQLite>",
+    "auth": "<CHIEN_LUOC_XAC_THUC: JWT HttpOnly Cookie / NextAuth / Supabase Auth / Session>",
+    "deployment": "<MOI_TRUONG_TRIEN_KHAI: Docker Compose / Vercel + Cloud / VPS Bare-metal>",
+    "external_services": {
+      "object_storage": "<MinIO / AWS S3 / Cloudflare R2 / null>",
+      "email_provider": "<Resend / SendGrid / SMTP / null>",
+      "llm_provider": "<Google Gemini / OpenAI / Anthropic / null>"
+    },
+    "status": "<CONFIRMED: Đã người dùng xác nhận | PENDING_CONFIRMATION>"
+  },
+
+  "interview_session": {
+    "session_id": "<SES-YYYYMMDD-SLUG: Mã phiên phỏng vấn>",
+    "total_rounds": 1,
+    "completion_rate_percent": 100,
+    "audit_log_ref": "<01_inputs/TEMPLATE_INTERVIEW_SESSION_LOG.json>",
+    "sign_off": {
+      "approved_by": "<TEN_NGUOI_DUNG>",
+      "approved_at": "<ISO-8601 Timestamp>",
+      "status": "APPROVED"
+    }
+  },
+
+  "problem": {
+    "persona": "<DOI_TUONG_NGUOI_DUNG: Chân dung đối tượng sử dụng chính>",
+    "goal": "<MUC_TIEU: Mục đích tối thượng người dùng cần đạt được>",
+    "pain_points": [
+      "<DIEM_DAU_1: Khó khăn, vướng mắc thực tế 1>",
+      "<DIEM_DAU_2: Khó khăn, vướng mắc thực tế 2>"
+    ]
+  },
+
+  "solution_model": {
+    "name": "<TEN_MO_HINH_GIAI_PHAP: Ví dụ: Kanban Board, Token Economy, Trợ lý AI tự động...>",
+    "rationale": "<LY_DO_CHON: Căn cứ/lý thuyết chứng minh mô hình này giải quyết được vấn đề>",
+    "loop": [
+      "<BUOC_1: Hành động kích hoạt đầu vào>",
+      "<BUOC_2: Hệ thống xử lý dữ liệu và tính toán>",
+      "<BUOC_3: AI/Hệ thống hỗ trợ gợi ý giải pháp>",
+      "<BUOC_4: Người dùng nghiệm thu và nhận kết quả>"
+    ]
+  },
+
+  "users": [
+    {
+      "role": "<ROLE_CODE: Ví dụ: ADMIN, MANAGER, USER, VIEWER>",
+      "description": "<MO_TA_QUYEN_HAN: Quyền hạn và phạm vi thao tác của vai trò này>"
+    }
+  ],
+
+  "entities": [
+    {
+      "name": "<EntityName: Tên thực thể dạng PascalCase, ví dụ: Item, Order, Student>",
+      "label": "<Tên hiển thị tiếng Việt, ví dụ: Hàng hóa, Đơn hàng, Học sinh>",
+      "description": "<Mô tả thực thể này lưu trữ thông tin gì>",
+      "fields": [
+        {
+          "name": "<fieldName: Tên trường dạng camelCase, ví dụ: code, title, amount>",
+          "label": "<Nhãn tiếng Việt hiển thị trên Form/Table>",
+          "type": "<Kieu_Du_Lieu: string | text | int | number | boolean | date | enum | ref>",
+          "required": true,
+          "enum_values": ["<GIA_TRI_1>", "<GIA_TRI_2>"],
+          "ref": "<Ten_Entity_Tham_Chieu_Neu_Type_La_Ref_Nguoc_Lai_De_null>"
+        }
+      ]
+    }
+  ],
+
+  "rules": [
+    {
+      "id": "<R-001: Mã định danh quy tắc>",
+      "title": "<Tên quy tắc nghiệp vụ>",
+      "description": "<Mô tả chi tiết cách thức vận hành hoặc điều kiện áp dụng>",
+      "kind": "<formula: có hàm tính toán | constraint: hàm kiểm tra ràng buộc | policy: chính sách xử lý không code>",
+      "function_name": "<tenHamCamelCase: Ví dụ: calcDiscount, null nếu là policy>",
+      "signature": "<(args: { param1: number }) => number: Chữ ký hàm TypeScript, null nếu là policy>",
+      "status": "<CONFIRMED: Đã chốt chính thức | PENDING: Chờ xác nhận>",
+      "examples": [
+        {
+          "input_json": "{\"<param1>\": 100}",
+          "expected_json": "10"
+        }
+      ]
+    }
+  ],
+
+  "screens": [
+    {
+      "id": "<screen-slug: Tên định danh màn hình dạng kebab-case, ví dụ: dashboard, item-list>",
+      "title": "<Tiêu đề hiển thị trên thanh menu>",
+      "purpose": "<Mục đích sử dụng của màn hình này>",
+      "kind": "<dashboard | entity_list | custom | ai_assistant | rules_settings>",
+      "entity": "<Ten_Entity_Chinh_Neu_Kind_La_entity_list_Nguoc_Lai_De_null>",
+      "uses_entities": ["<Entity1>", "<Entity2>"],
+      "uses_rules": ["<R-001>"],
+      "uses_ai_tasks": ["<ai_task_id>"]
+    }
+  ],
+
+  "ai_tasks": [
+    {
+      "id": "<ai_task_id: Tên tác vụ AI dạng snake_case, ví dụ: generate_summary, draft_email>",
+      "title": "<Tên tác vụ hiển thị>",
+      "purpose": "<Mục tiêu AI cần hỗ trợ con người>",
+      "subject_entity": "<Entity_Chinh_Duoc_AI_Phan_Tich>",
+      "context_entities": ["<Entity_Minh_Chung_Dau_Vao>"],
+      "tones": ["<Tone_1: Ví dụ: Chuyên nghiệp>", "<Tone_2: Thân thiện>", "<Tone_3: Thuyết phục>"],
+      "requires_approval": true
+    }
+  ],
+
+  "seed": [
+    {
+      "entity": "<EntityName: Trùng với tên entity ở trên>",
+      "rows_json": "[{\"id\":\"seed-1\",\"<field1>\":\"<sample_val>\"}]"
+    }
+  ],
+
+  "assumptions": [
+    {
+      "id": "A-001",
+      "text": "<Gia_Dinh_Nghiep_Vu: Giả định về phạm vi hoặc quy mô hệ thống>",
+      "status": "CONFIRMED"
+    }
+  ],
+
+  "non_functional": [
+    "<YEU_CAU_PHI_CHUC_NANG_1: Ví dụ: Bảo mật dữ liệu cá nhân>",
+    "<YEU_CAU_PHI_CHUC_NANG_2: Tốc độ phản hồi < 500ms>",
+    "<YEU_CAU_PHI_CHUC_NANG_3: Hỗ trợ giao diện Responsive trên Mobile>"
+  ]
+}

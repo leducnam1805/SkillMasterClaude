@@ -1,0 +1,483 @@
+{
+  "meta": {
+    "name": "AI ClassMate 2G3",
+    "slug": "classmate-2g3",
+    "summary": "Trợ lý chủ nhiệm lớp tiểu học: ghi nhận thi đua, tính quà tự động, nhận xét cuối tháng bằng AI có giáo viên duyệt."
+  },
+  "problem": {
+    "persona": "Giáo viên chủ nhiệm lớp 2 (26 học sinh)",
+    "goal": "Khuyến khích và đánh giá học sinh dựa trên minh chứng, giảm thời gian tổng hợp thi đua và viết nhận xét.",
+    "pain_points": [
+      "Cộng trừ điểm thủ công dễ sai",
+      "Viết nhận xét cuối tháng cho từng em tốn nhiều thời gian",
+      "Khó theo dõi tiến bộ qua nhiều tuần"
+    ]
+  },
+  "solution_model": {
+    "name": "Thi đua tích điểm đổi quà + nhận xét AI theo minh chứng",
+    "rationale": "Phản hồi tức thì bằng điểm cộng giúp học sinh 7-8 tuổi thấy được tiến bộ; quà quy đổi theo mốc tạo mục tiêu rõ ràng; nhận xét dựa trên sự việc cụ thể giúp phụ huynh đồng hành.",
+    "loop": [
+      "Ghi nhận minh chứng",
+      "Tổng hợp tự động",
+      "AI phân tích & đề xuất",
+      "Giáo viên kiểm duyệt",
+      "Theo dõi tiến bộ",
+      "Điều chỉnh biện pháp"
+    ]
+  },
+  "users": [
+    {
+      "role": "TEACHER",
+      "description": "Giáo viên chủ nhiệm, người quyết định cuối cùng"
+    }
+  ],
+  "entities": [
+    {
+      "name": "Student",
+      "label": "Học sinh",
+      "description": "Học sinh trong lớp (chỉ lưu tên gọi, không lưu thông tin định danh)",
+      "fields": [
+        {
+          "name": "code",
+          "label": "Mã HS",
+          "type": "string",
+          "required": true,
+          "enum_values": [],
+          "ref": null
+        },
+        {
+          "name": "displayName",
+          "label": "Tên gọi",
+          "type": "string",
+          "required": true,
+          "enum_values": [],
+          "ref": null
+        },
+        {
+          "name": "group",
+          "label": "Tổ",
+          "type": "string",
+          "required": false,
+          "enum_values": [],
+          "ref": null
+        }
+      ]
+    },
+    {
+      "name": "Criterion",
+      "label": "Tiêu chí thi đua",
+      "description": "Hành vi được cộng/trừ điểm",
+      "fields": [
+        {
+          "name": "code",
+          "label": "Mã",
+          "type": "string",
+          "required": true,
+          "enum_values": [],
+          "ref": null
+        },
+        {
+          "name": "label",
+          "label": "Tên hành vi",
+          "type": "string",
+          "required": true,
+          "enum_values": [],
+          "ref": null
+        },
+        {
+          "name": "points",
+          "label": "Điểm",
+          "type": "int",
+          "required": true,
+          "enum_values": [],
+          "ref": null
+        },
+        {
+          "name": "type",
+          "label": "Loại",
+          "type": "enum",
+          "required": true,
+          "enum_values": [
+            "BONUS",
+            "PENALTY"
+          ],
+          "ref": null
+        },
+        {
+          "name": "active",
+          "label": "Đang áp dụng",
+          "type": "boolean",
+          "required": true,
+          "enum_values": [],
+          "ref": null
+        }
+      ]
+    },
+    {
+      "name": "BehaviorEvent",
+      "label": "Sự việc ghi nhận",
+      "description": "Một lần ghi nhận hành vi của học sinh",
+      "fields": [
+        {
+          "name": "student",
+          "label": "Học sinh",
+          "type": "ref",
+          "required": true,
+          "enum_values": [],
+          "ref": "Student"
+        },
+        {
+          "name": "criterion",
+          "label": "Tiêu chí",
+          "type": "ref",
+          "required": true,
+          "enum_values": [],
+          "ref": "Criterion"
+        },
+        {
+          "name": "date",
+          "label": "Ngày",
+          "type": "date",
+          "required": true,
+          "enum_values": [],
+          "ref": null
+        },
+        {
+          "name": "note",
+          "label": "Ghi chú minh chứng",
+          "type": "text",
+          "required": false,
+          "enum_values": [],
+          "ref": null
+        },
+        {
+          "name": "status",
+          "label": "Trạng thái",
+          "type": "enum",
+          "required": true,
+          "enum_values": [
+            "PENDING",
+            "CONFIRMED",
+            "REJECTED"
+          ],
+          "ref": null
+        }
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "id": "R-001",
+      "title": "Ô trống không phải điểm 0",
+      "description": "Dữ liệu chưa ghi nhận phải để trống, không tự gán 0.",
+      "kind": "policy",
+      "function_name": null,
+      "signature": null,
+      "status": "CONFIRMED",
+      "examples": []
+    },
+    {
+      "id": "R-002",
+      "title": "Không ghi đè lịch sử",
+      "description": "Mọi sửa đổi phải lưu vết: ai, khi nào, giá trị trước/sau.",
+      "kind": "policy",
+      "function_name": null,
+      "signature": null,
+      "status": "CONFIRMED",
+      "examples": []
+    },
+    {
+      "id": "R-003",
+      "title": "Tổng điểm tháng",
+      "description": "Tổng điểm = tổng điểm các sự việc đã CONFIRMED trong tháng.",
+      "kind": "formula",
+      "function_name": "calcMonthlyTotal",
+      "signature": "(args: { points: number[] }) => number",
+      "status": "CONFIRMED",
+      "examples": [
+        {
+          "input_json": "{\"points\":[1,1,-1]}",
+          "expected_json": "1"
+        },
+        {
+          "input_json": "{\"points\":[]}",
+          "expected_json": "0"
+        },
+        {
+          "input_json": "{\"points\":[-10,1]}",
+          "expected_json": "-9"
+        }
+      ]
+    },
+    {
+      "id": "R-004",
+      "title": "Số quà",
+      "description": "Mỗi 10 điểm = 1 quà; tổng < 10 (kể cả âm) thì 0 quà.",
+      "kind": "formula",
+      "function_name": "calcGifts",
+      "signature": "(args: { total: number }) => number",
+      "status": "CONFIRMED",
+      "examples": [
+        {
+          "input_json": "{\"total\":25}",
+          "expected_json": "2"
+        },
+        {
+          "input_json": "{\"total\":10}",
+          "expected_json": "1"
+        },
+        {
+          "input_json": "{\"total\":9}",
+          "expected_json": "0"
+        },
+        {
+          "input_json": "{\"total\":-3}",
+          "expected_json": "0"
+        }
+      ]
+    },
+    {
+      "id": "R-005",
+      "title": "Điểm dư",
+      "description": "Tổng ≥ 0: điểm dư = tổng mod 10. Tổng < 0: điểm dư 0 và không hiển thị công khai.",
+      "kind": "formula",
+      "function_name": "calcRemainder",
+      "signature": "(args: { total: number }) => number",
+      "status": "CONFIRMED",
+      "examples": [
+        {
+          "input_json": "{\"total\":25}",
+          "expected_json": "5"
+        },
+        {
+          "input_json": "{\"total\":7}",
+          "expected_json": "7"
+        },
+        {
+          "input_json": "{\"total\":-4}",
+          "expected_json": "0"
+        }
+      ]
+    },
+    {
+      "id": "R-006",
+      "title": "Chống ghi trùng",
+      "description": "Không ghi nhận trùng cùng học sinh, cùng tiêu chí, cùng ngày. (Cách hiểu 'cùng thời điểm' chưa được giáo viên xác nhận.)",
+      "kind": "constraint",
+      "function_name": "isDuplicateEvent",
+      "signature": "(args: { existing: { student: string; criterion: string; date: string }[]; candidate: { student: string; criterion: string; date: string } }) => boolean",
+      "status": "PENDING",
+      "examples": [
+        {
+          "input_json": "{\"existing\":[{\"student\":\"hs01\",\"criterion\":\"b-01\",\"date\":\"2026-09-08\"}],\"candidate\":{\"student\":\"hs01\",\"criterion\":\"b-01\",\"date\":\"2026-09-08\"}}",
+          "expected_json": "true"
+        },
+        {
+          "input_json": "{\"existing\":[],\"candidate\":{\"student\":\"hs01\",\"criterion\":\"b-01\",\"date\":\"2026-09-08\"}}",
+          "expected_json": "false"
+        }
+      ]
+    }
+  ],
+  "screens": [
+    {
+      "id": "dashboard",
+      "title": "Bảng điều hành lớp",
+      "purpose": "Tổng quan: sĩ số, tổng quà dự kiến, học sinh tích cực, học sinh cần hỗ trợ.",
+      "kind": "dashboard",
+      "entity": null,
+      "uses_entities": [
+        "Student",
+        "BehaviorEvent",
+        "Criterion"
+      ],
+      "uses_rules": [
+        "R-003",
+        "R-004"
+      ],
+      "uses_ai_tasks": []
+    },
+    {
+      "id": "quick-entry",
+      "title": "Ghi nhận nhanh",
+      "purpose": "Chọn học sinh rồi bấm 1 chạm vào tiêu chí để cộng/trừ điểm.",
+      "kind": "custom",
+      "entity": null,
+      "uses_entities": [
+        "Student",
+        "Criterion",
+        "BehaviorEvent"
+      ],
+      "uses_rules": [
+        "R-006"
+      ],
+      "uses_ai_tasks": []
+    },
+    {
+      "id": "monthly-summary",
+      "title": "Tổng kết tháng",
+      "purpose": "Bảng tổng điểm, số quà, điểm dư từng học sinh; điểm âm hiển thị là 'Mục tiêu rèn luyện'.",
+      "kind": "custom",
+      "entity": null,
+      "uses_entities": [
+        "Student",
+        "BehaviorEvent",
+        "Criterion"
+      ],
+      "uses_rules": [
+        "R-003",
+        "R-004",
+        "R-005"
+      ],
+      "uses_ai_tasks": []
+    },
+    {
+      "id": "students",
+      "title": "Học sinh",
+      "purpose": "Quản lý danh sách học sinh.",
+      "kind": "entity_list",
+      "entity": "Student",
+      "uses_entities": [
+        "Student"
+      ],
+      "uses_rules": [],
+      "uses_ai_tasks": []
+    },
+    {
+      "id": "events",
+      "title": "Sự việc",
+      "purpose": "Xem và điều chỉnh các sự việc đã ghi.",
+      "kind": "entity_list",
+      "entity": "BehaviorEvent",
+      "uses_entities": [
+        "BehaviorEvent"
+      ],
+      "uses_rules": [],
+      "uses_ai_tasks": []
+    },
+    {
+      "id": "criteria",
+      "title": "Tiêu chí",
+      "purpose": "Bảng tiêu chí cộng/trừ điểm.",
+      "kind": "entity_list",
+      "entity": "Criterion",
+      "uses_entities": [
+        "Criterion"
+      ],
+      "uses_rules": [],
+      "uses_ai_tasks": []
+    },
+    {
+      "id": "ai-assistant",
+      "title": "Trợ lý AI",
+      "purpose": "Soạn nhận xét, kế hoạch rèn luyện, tin nhắn phụ huynh — giáo viên sửa và duyệt.",
+      "kind": "ai_assistant",
+      "entity": null,
+      "uses_entities": [
+        "Student",
+        "BehaviorEvent"
+      ],
+      "uses_rules": [],
+      "uses_ai_tasks": [
+        "monthly_comment",
+        "support_plan",
+        "parent_message"
+      ]
+    },
+    {
+      "id": "rules",
+      "title": "Quy tắc",
+      "purpose": "Xem và xác nhận các quy tắc tính điểm.",
+      "kind": "rules_settings",
+      "entity": null,
+      "uses_entities": [],
+      "uses_rules": [
+        "R-001",
+        "R-002",
+        "R-003",
+        "R-004",
+        "R-005",
+        "R-006"
+      ],
+      "uses_ai_tasks": []
+    }
+  ],
+  "ai_tasks": [
+    {
+      "id": "monthly_comment",
+      "title": "Nhận xét cuối tháng",
+      "purpose": "Nhận xét cá nhân hóa dựa trên các sự việc đã xác nhận: điểm mạnh, biểu hiện tích cực, nội dung cần rèn luyện.",
+      "subject_entity": "Student",
+      "context_entities": [
+        "BehaviorEvent",
+        "Criterion"
+      ],
+      "tones": [
+        "Khích lệ",
+        "Nhẹ nhàng uốn nắn",
+        "Ngắn gọn"
+      ],
+      "requires_approval": true
+    },
+    {
+      "id": "support_plan",
+      "title": "Kế hoạch rèn luyện tuần tới",
+      "purpose": "1-2 mục tiêu nhỏ, biện pháp hỗ trợ của giáo viên và cách theo dõi.",
+      "subject_entity": "Student",
+      "context_entities": [
+        "BehaviorEvent",
+        "Criterion"
+      ],
+      "tones": [
+        "Cụ thể, khả thi"
+      ],
+      "requires_approval": true
+    },
+    {
+      "id": "parent_message",
+      "title": "Tin nhắn phụ huynh",
+      "purpose": "Thông điệp tôn trọng, dựa trên sự việc đã xác minh, gợi ý cách đồng hành tại nhà.",
+      "subject_entity": "Student",
+      "context_entities": [
+        "BehaviorEvent",
+        "Criterion"
+      ],
+      "tones": [
+        "Thân thiện",
+        "Trang trọng"
+      ],
+      "requires_approval": true
+    }
+  ],
+  "seed": [
+    {
+      "entity": "Student",
+      "rows_json": "[{\"id\":\"hs01\",\"code\":\"HS01\",\"displayName\":\"An\",\"group\":\"Tổ 1\"},{\"id\":\"hs02\",\"code\":\"HS02\",\"displayName\":\"Bình\",\"group\":\"Tổ 1\"},{\"id\":\"hs03\",\"code\":\"HS03\",\"displayName\":\"Chi\",\"group\":\"Tổ 1\"},{\"id\":\"hs04\",\"code\":\"HS04\",\"displayName\":\"Dũng\",\"group\":\"Tổ 2\"},{\"id\":\"hs05\",\"code\":\"HS05\",\"displayName\":\"Hà\",\"group\":\"Tổ 2\"},{\"id\":\"hs06\",\"code\":\"HS06\",\"displayName\":\"Khoa\",\"group\":\"Tổ 2\"}]"
+    },
+    {
+      "entity": "Criterion",
+      "rows_json": "[{\"id\":\"p-01\",\"code\":\"P-01\",\"label\":\"Vi phạm cờ đỏ\",\"points\":-10,\"type\":\"PENALTY\",\"active\":true},{\"id\":\"p-02\",\"code\":\"P-02\",\"label\":\"Xô xát / Đánh bạn\",\"points\":-10,\"type\":\"PENALTY\",\"active\":true},{\"id\":\"p-03\",\"code\":\"P-03\",\"label\":\"Rời vị trí, đi lại tự do trong giờ\",\"points\":-2,\"type\":\"PENALTY\",\"active\":true},{\"id\":\"p-04\",\"code\":\"P-04\",\"label\":\"Nói chuyện riêng\",\"points\":-1,\"type\":\"PENALTY\",\"active\":true},{\"id\":\"p-05\",\"code\":\"P-05\",\"label\":\"Tự ý phát biểu khi chưa xin phép (nói leo)\",\"points\":-1,\"type\":\"PENALTY\",\"active\":true},{\"id\":\"p-06\",\"code\":\"P-06\",\"label\":\"Thiếu đồ dùng, sách vở học tập\",\"points\":-1,\"type\":\"PENALTY\",\"active\":true},{\"id\":\"p-07\",\"code\":\"P-07\",\"label\":\"Mất tập trung trong giờ học\",\"points\":-1,\"type\":\"PENALTY\",\"active\":true},{\"id\":\"b-01\",\"code\":\"B-01\",\"label\":\"Hăng hái phát biểu xây dựng bài\",\"points\":1,\"type\":\"BONUS\",\"active\":true},{\"id\":\"b-02\",\"code\":\"B-02\",\"label\":\"Vở sạch, chữ đẹp, làm bài tốt\",\"points\":1,\"type\":\"BONUS\",\"active\":true},{\"id\":\"b-03\",\"code\":\"B-03\",\"label\":\"Tích cực tham gia vệ sinh, trực nhật\",\"points\":1,\"type\":\"BONUS\",\"active\":true},{\"id\":\"b-04\",\"code\":\"B-04\",\"label\":\"Giúp đỡ bạn bè\",\"points\":1,\"type\":\"BONUS\",\"active\":true},{\"id\":\"b-05\",\"code\":\"B-05\",\"label\":\"Tích cực tham gia trò chơi học tập\",\"points\":1,\"type\":\"BONUS\",\"active\":true}]"
+    },
+    {
+      "entity": "BehaviorEvent",
+      "rows_json": "[{\"id\":\"e01\",\"student\":\"hs01\",\"criterion\":\"b-01\",\"date\":\"2026-09-08\",\"note\":\"\",\"status\":\"CONFIRMED\"},{\"id\":\"e02\",\"student\":\"hs01\",\"criterion\":\"b-02\",\"date\":\"2026-09-08\",\"note\":\"\",\"status\":\"CONFIRMED\"},{\"id\":\"e03\",\"student\":\"hs01\",\"criterion\":\"b-04\",\"date\":\"2026-09-09\",\"note\":\"Giảng bài cho bạn Khoa\",\"status\":\"CONFIRMED\"},{\"id\":\"e04\",\"student\":\"hs02\",\"criterion\":\"p-04\",\"date\":\"2026-09-08\",\"note\":\"\",\"status\":\"CONFIRMED\"},{\"id\":\"e05\",\"student\":\"hs02\",\"criterion\":\"b-01\",\"date\":\"2026-09-10\",\"note\":\"\",\"status\":\"CONFIRMED\"},{\"id\":\"e06\",\"student\":\"hs03\",\"criterion\":\"b-03\",\"date\":\"2026-09-09\",\"note\":\"\",\"status\":\"CONFIRMED\"},{\"id\":\"e07\",\"student\":\"hs04\",\"criterion\":\"p-03\",\"date\":\"2026-09-09\",\"note\":\"\",\"status\":\"CONFIRMED\"},{\"id\":\"e08\",\"student\":\"hs04\",\"criterion\":\"p-07\",\"date\":\"2026-09-10\",\"note\":\"\",\"status\":\"CONFIRMED\"},{\"id\":\"e09\",\"student\":\"hs05\",\"criterion\":\"b-05\",\"date\":\"2026-09-11\",\"note\":\"\",\"status\":\"CONFIRMED\"},{\"id\":\"e10\",\"student\":\"hs06\",\"criterion\":\"p-01\",\"date\":\"2026-09-12\",\"note\":\"Sao đỏ ghi nhận xếp hàng chậm\",\"status\":\"CONFIRMED\"}]"
+    }
+  ],
+  "assumptions": [
+    {
+      "id": "A-001",
+      "text": "Một lớp, một giáo viên sử dụng (chưa cần phân quyền).",
+      "status": "CONFIRMED"
+    },
+    {
+      "id": "A-002",
+      "text": "Chu kỳ tổng kết là theo tháng dương lịch.",
+      "status": "CONFIRMED"
+    }
+  ],
+  "non_functional": [
+    "Giao diện tiếng Việt, dùng tốt trên máy tính bảng",
+    "Chạy cục bộ, dữ liệu lưu trên máy giáo viên",
+    "Chỉ gửi tên gọi và chuỗi hành vi tới AI"
+  ]
+}

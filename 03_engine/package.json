@@ -1,0 +1,24 @@
+{
+  "name": "eduapp-agent",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Agent biến mô tả ~100 từ thành web app chạy được (bài toán giáo dục).",
+  "scripts": {
+    "agent": "tsx src/cli.ts",
+    "lint-spec": "tsx src/tools/lint-spec.ts",
+    "generate": "tsx src/tools/generate.ts",
+    "verify-reference": "tsx src/tools/verify-reference.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test --experimental-strip-types tests/*.test.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.10.0",
+    "zod": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0"
+  }
+}

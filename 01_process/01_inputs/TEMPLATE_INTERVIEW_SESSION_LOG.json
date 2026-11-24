@@ -1,0 +1,53 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Interview Session Audit Log Template",
+  "description": "Nhật ký lưu trữ toàn bộ quá trình hỏi đáp, đánh giá và kết quả phỏng vấn giữa AI và Người dùng",
+  "session_id": "SES-<YYYYMMDD>-<SLUG>",
+  "spec_slug": "<slug-du-an>",
+  "created_at": "<ISO-8601 Timestamp: YYYY-MM-DDTHH:mm:ssZ>",
+  "updated_at": "<ISO-8601 Timestamp: YYYY-MM-DDTHH:mm:ssZ>",
+  "final_status": "CONFIRMED",
+  "approved_by": "<TEN_NGUOI_DUNG_DUYET>",
+  "approved_at": "<ISO-8601 Timestamp>",
+
+  "rounds": [
+    {
+      "round_number": 1,
+      "topic": "TECH_STACK_CORE",
+      "timestamp": "2026-11-24T09:30:00Z",
+      "qa_items": [
+        {
+          "question_id": "Q-001",
+          "checklist_ref": "01_inputs/INTAKE_QUESTIONNAIRE.md#B1",
+          "context_reason": "Cần xác định framework giao diện người dùng để cấu hình kiến trúc component và styling.",
+          "question_text": "Bạn muốn xây dựng giao diện ứng dụng (Frontend) trên nền tảng nào?",
+          "options_provided": [
+            "(Khuyến nghị) Next.js 15+ App Router (TypeScript strict, Tailwind CSS, Shadcn UI)",
+            "Vite + React 19 SPA",
+            "Nuxt 3 / Vue 3"
+          ],
+          "user_answer": "Next.js 15+ App Router",
+          "evaluation": {
+            "feasibility": "Tương thích cao, hỗ trợ SSR/SSG và Server Actions, tối ưu SEO và bảo mật cookie.",
+            "cost_and_resource": "Miễn phí mã nguồn mở, triển khai nhẹ nhàng trên Docker hoặc Vercel.",
+            "technical_impact": "Khởi tạo cấu trúc app router TypeScript, cấu hình Tailwind v4 và Lucide icons.",
+            "risk_assessment": "Thấp. Cần chú ý strict typing để tránh lỗi hydration."
+          },
+          "result_applied_to_spec": {
+            "spec_field": "tech_stack.frontend",
+            "assigned_value": "Next.js 15+ App Router (TypeScript, Tailwind CSS)",
+            "status": "CONFIRMED"
+          }
+        }
+      ]
+    }
+  ],
+
+  "summary_metrics": {
+    "total_rounds": 1,
+    "total_questions": 1,
+    "confirmed_items": 1,
+    "pending_items": 0,
+    "completion_rate_percent": 100
+  }
+}
